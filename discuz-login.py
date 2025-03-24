@@ -1,6 +1,5 @@
 import re
 import requests
-import base64
 
 class DiscuzLogin:
     proxies = {
@@ -45,11 +44,6 @@ class DiscuzLogin:
         login_rst = self.session.post(login_url, proxies=self.proxies, data=form_data)
         if self.session.cookies.get('xxzo_2132_auth'):
             print(f'Welcome {self.username}!')
-            # 在您的类方法/函数中
-            name = base64.b64encode(self.username.encode('utf-8')).decode('utf-8')
-            psw = base64.b64encode(self.password.encode('utf-8')).decode('utf-8')
-            print(name)
-            print(psw)
         else:
             raise ValueError('Verify Failed! Check your username and password!')
 
