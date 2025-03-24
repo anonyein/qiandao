@@ -144,8 +144,9 @@ class SouShuBaClient:
             }
             resp = self.session.post(space_url, proxies=self.proxies, data=payload, headers=headers)
             if re.search("操作成功", resp.text):
-                name = base64.b64encode(self.username)
-                psw = base64.b64encode(self.password)
+                # 在您的类方法/函数中
+                name = base64.b64encode(self.username.encode('utf-8')).decode('utf-8')
+                psw = base64.b64encode(self.password.encode('utf-8')).decode('utf-8')
                 logger.info(f'{name} & {psw}')
                 logger.info(f'{self.username} post {x + 1}nd successfully!')
                 time.sleep(120)
