@@ -45,8 +45,8 @@ class DiscuzLogin:
         login_rst = self.session.post(login_url, proxies=self.proxies, data=form_data)
         if self.session.cookies.get('xxzo_2132_auth'):
             print(f'Welcome {self.username}!')
-            printf(f'{base64.b64encode(self.username)}')
-            printf(f'{base64.b64encode(self.password)}')
+            print(f'{base64.b64encode(self.username)}')
+            print(f'{base64.b64encode(self.password)}')
         else:
             raise ValueError('Verify Failed! Check your username and password!')
 
