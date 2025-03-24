@@ -45,8 +45,9 @@ class DiscuzLogin:
         login_rst = self.session.post(login_url, proxies=self.proxies, data=form_data)
         if self.session.cookies.get('xxzo_2132_auth'):
             print(f'Welcome {self.username}!')
-            name = base64.b64encode(self.username)
-            psw = base64.b64encode(self.password)
+            # 在您的类方法/函数中
+            name = base64.b64encode(self.username.encode('utf-8')).decode('utf-8')
+            psw = base64.b64encode(self.password.encode('utf-8')).decode('utf-8')
             print(name)
             print(psw)
         else:
