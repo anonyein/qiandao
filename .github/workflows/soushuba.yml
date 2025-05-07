@@ -23,5 +23,9 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
       - run: pip install --upgrade certifi
+      # 获取目标网站的PEM格式证书
+      - run: openssl s_client -connect g9dr.bnm.9vdrg4er5.com:443 -showcerts </dev/null 2>/dev/null | openssl x509 -outform PEM > certificate.pem
+      - run: python -c "import certifi; print(certifi.where())"
+      - run: cat certificate.pem >> $(python -c "import certifi; print(certifi.where())")
       - run: pip install -r requirements.txt
       - run: python soushuba.py
