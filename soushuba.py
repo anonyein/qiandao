@@ -209,16 +209,10 @@ if __name__ == '__main__':
         # 初始化时禁用SSL验证
         requests.packages.urllib3.disable_warnings()
         
-        # 获取跳转地址
-        if not (redirect_url := get_refresh_url('http://' + os.environ.get('SOUSHUBA_HOSTNAME', 'www.soushu2025.com'))):
-            raise ValueError("获取初始跳转地址失败")
+        redirect_url = get_refresh_url('http://' + os.environ.get('SOUSHUBA_HOSTNAME', 'www.soushu2025.com'))
         time.sleep(2)
-        
-        if not (redirect_url2 := get_refresh_url(redirect_url)):
-            raise ValueError("获取二级跳转地址失败")
-            
-        if not (url := get_url(redirect_url2)):
-            raise ValueError("无法解析最终URL")
+        redirect_url2 = get_refresh_url(redirect_url)
+        url = get_url(redirect_url2)
             
         logger.info(f'解析成功: {url}')
         client = SouShuBaClient(
