@@ -107,35 +107,39 @@ class SouShuBaClient:
         self.proxies = proxies
 
     def login_form_hash(self):
-        """获取登录所需的 loginhash 和 formhash"""
-        try:
-            resp = self.session.get(
-                f'https://{self.hostname}/member.php?mod=logging&action=login',
-                verify=False, timeout=10
-            )
-            resp.encoding = 'utf-8'  # 确保编码正确
-            rst = resp.text
-        except Exception as e:
-            logger.exception("Failed to fetch login page")
-            raise
-
-        # 安全提取 loginhash
-        match = re.search(r'<div id="main_messaqge_(.+?)">', rst)
-        if not match:
-            logger.error("Could not find loginhash in login page")
-            logger.debug(f"Response snippet (first 500 chars): {rst[:500]}")
-            raise ValueError("Login page structure changed or access blocked (loginhash missing).")
-        loginhash = match.group(1)
-
-        # 安全提取 formhash
-        match = re.search(r'<input type="hidden" name="formhash" value="(.+?)" />', rst)
-        if not match:
-            logger.error("Could not find formhash in login page")
-            logger.debug(f"Response snippet (first 500 chars): {rst[:500]}")
-            raise ValueError("Login page structure changed or access blocked (formhash missing).")
-        formhash = match.group(1)
-
-        return loginhash, formhash
+        """获取登录所需的 loginhash 和 formhash（带重试）"""
+        last_exception = None
+        for attempt in range(3):
+            try:
+                resp = self.session.get(
+                    f'https://{self.hostname}/member.php?mod=logging&action=login',
+                    verify=False, timeout=10
+                )
+                resp.encoding = 'utf-8'
+                rst = resp.text
+    
+                # 安全提取 loginhash
+                match = re.search(r'<div id="main_messaqge_(.+?)">', rst)
+                if not match:
+                    raise ValueError("loginhash not found in page")
+                loginhash = match.group(1)
+    
+                # 安全提取 formhash
+                match = re.search(r'<input type="hidden" name="formhash" value="(.+?)" />', rst)
+                if not match:
+                    raise ValueError("formhash not found in page")
+                formhash = match.group(1)
+    
+                return loginhash, formhash
+    
+            except Exception as e:
+                last_exception = e
+                logger.warning(f"login_form_hash attempt {attempt+1} failed: {e}")
+                if attempt < 2:
+                    time.sleep(10)
+                else:
+                    logger.error("login_form_hash failed after 3 attempts")
+                    raise last_exception
 
     def login(self):
         """使用用户名密码登录"""
