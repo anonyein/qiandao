@@ -206,15 +206,15 @@ class SouShuBaClient:
         return match.group(1)
 
     def space(self):
-        """发布 5 条空间动态，间隔 120 秒"""
+        """发布 5 条空间动态，间隔 120 秒（带掉线自动重连）"""
         space_url = f"https://{self.hostname}/home.php?mod=spacecp&ac=doing&handlekey=doing&inajax=1"
-
+    
         headers = copy(self._common_headers)
         headers["origin"] = f'https://{self.hostname}'
         headers["referer"] = f'https://{self.hostname}/home.php'
-
+    
         for x in range(5):
-            # 每次发布前重新获取 formhash，带重试机制
+            formhash = None
             for retry in range(3):
                 try:
                     formhash = self.space_form_hash()
@@ -222,7 +222,14 @@ class SouShuBaClient:
                 except Exception as e:
                     logger.warning(f"Get formhash attempt {retry+1} failed: {e}")
                     if retry < 2:
-                        time.sleep(10)  # 等待后重试
+                        # 尝试重新登录，解决因掉线导致的 formhash 缺失
+                        try:
+                            logger.info("Trying to re-login to recover session...")
+                            self.login()
+                            time.sleep(5)   # 给服务器一点反应时间
+                        except Exception as le:
+                            logger.warning(f"Re-login attempt failed: {le}")
+                        time.sleep(10)      # 等待后继续重试
                     else:
                         logger.error(f"Failed to get formhash after 3 attempts, skipping post {x+1}")
                         formhash = None
@@ -230,7 +237,7 @@ class SouShuBaClient:
     
             if formhash is None:
                 continue  # 跳过本次发布，尝试下一次
-                
+    
             payload = {
                 "message": f"开心赚银币 {x + 1} 次",
                 "addsubmit": "true",
@@ -249,7 +256,7 @@ class SouShuBaClient:
                     logger.warning(f'{self.username} post {x + 1}nd failed! Response: {resp.text[:100]}')
             except Exception as e:
                 logger.exception(f"Post {x+1} exception: {e}")
-
+            
 if __name__ == '__main__':
     try:
         # 从环境变量获取配置
