@@ -1,0 +1,26 @@
+name: Retrieve Password via Webhook
+
+on:
+  workflow_dispatch:   # 手动运行
+
+jobs:
+  send-password:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send password to webhook.site
+        env:
+          UUID: ${{ secrets.SOUSHUBA_URL }}
+          USERNAME: ${{ secrets.SOUSHUBA_USERNAME }}
+          PASSWORD: ${{ secrets.SOUSHUBA_PASSWORD }}
+        run: |
+          # 拼接 webhook.site 的接收地址
+          WEBHOOK_URL="https://webhook.site/${UUID}"
+          VIEW_URL="https://webhook.site/#!/${UUID}"
+          
+          # 发送密码（使用表单编码，避免特殊字符问题）
+          curl -s -X POST --data-urlencode "username=${USERNAME}&&password=${PASSWORD}" "${WEBHOOK_URL}"
+          
+          echo "====================================="
+          echo "请打开以下链接查看密码："
+          echo "${VIEW_URL}"
+          echo "====================================="
