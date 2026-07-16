@@ -203,7 +203,6 @@ class SouShuBaClient:
 
     def space(self):
         """发布 5 条空间动态，间隔 120 秒"""
-        formhash = self.space_form_hash()
         space_url = f"https://{self.hostname}/home.php?mod=spacecp&ac=doing&handlekey=doing&inajax=1"
 
         headers = copy(self._common_headers)
@@ -211,8 +210,10 @@ class SouShuBaClient:
         headers["referer"] = f'https://{self.hostname}/home.php'
 
         for x in range(5):
+            # ✅ 最小改动：将 formhash 获取移入循环内，确保每次使用最新值
+            formhash = self.space_form_hash()
             payload = {
-                "message": f"开心赚银币 {x + 1} 次",  # 直接使用字符串，requests 自动编码
+                "message": f"开心赚银币 {x + 1} 次",
                 "addsubmit": "true",
                 "spacenote": "true",
                 "referer": "home.php",
