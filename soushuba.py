@@ -210,8 +210,23 @@ class SouShuBaClient:
         headers["referer"] = f'https://{self.hostname}/home.php'
 
         for x in range(5):
-            # ✅ 最小改动：将 formhash 获取移入循环内，确保每次使用最新值
-            formhash = self.space_form_hash()
+            # 每次发布前重新获取 formhash，带重试机制
+            for retry in range(3):
+                try:
+                    formhash = self.space_form_hash()
+                    break
+                except Exception as e:
+                    logger.warning(f"Get formhash attempt {retry+1} failed: {e}")
+                    if retry < 2:
+                        time.sleep(10)  # 等待后重试
+                    else:
+                        logger.error(f"Failed to get formhash after 3 attempts, skipping post {x+1}")
+                        formhash = None
+                        break
+    
+            if formhash is None:
+                continue  # 跳过本次发布，尝试下一次
+                
             payload = {
                 "message": f"开心赚银币 {x + 1} 次",
                 "addsubmit": "true",
@@ -230,7 +245,6 @@ class SouShuBaClient:
                     logger.warning(f'{self.username} post {x + 1}nd failed! Response: {resp.text[:100]}')
             except Exception as e:
                 logger.exception(f"Post {x+1} exception: {e}")
-
 
 if __name__ == '__main__':
     try:
